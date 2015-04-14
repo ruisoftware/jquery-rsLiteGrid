@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Lite grid demo</title>
+    <script src="jquery.2.0.0.min.js"></script>
+    <script src="jquery.rsLiteGrid.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("table").rsLiteGrid({ cols: [{
+                name: 'col1',
+                htmlTitle: 'col1',
+                htmlData: '<input type="text">'
+                ,tabStop: false
+              }, {
+                name: 'col2',
+                htmlTitle: 'col2',
+                htmlData: '<input type="text">'
+                ,tabStop: false
+              }, {
+                name: 'col3',
+                htmlTitle: 'col3',
+                htmlData: '<input type="text">'
+              }]
+            });
+        });
+    </script>
+  </head>
+  <body>
+    <table class="grid"></table>
+  </body>
+</html>
