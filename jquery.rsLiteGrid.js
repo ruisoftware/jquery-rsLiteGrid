@@ -200,8 +200,8 @@
                 },
                 setData: function(e, values) {
                     if (values) {
-                        var $lastRow = $('> .' + opts.rowClass + ':not(.' + opts.titleClass + '):last-child', DOM.$table),
-                            $cols = $lastRow.children();
+                        var $lastRow = DOM.$tbody.children().last(),
+                            $cols = $lastRow.find('input');
 
                         // if all inputs in last row are empty, then delete the last row
                         if ($cols.filter(function (index) {
@@ -227,7 +227,7 @@
                     }
                 },
                 setRowValues: function($row, values) {
-                    var $rowCols = $row.children(),
+                    var $rowCols = $row.find('input'),
                         colCount = $rowCols.length,
                         colNumber,
                         $targetCol;
