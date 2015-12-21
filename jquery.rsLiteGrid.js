@@ -1,3 +1,14 @@
+/**
+* jQuery Grid - Plain, simple table that adds rows as you
+* ===============================================================
+*
+* Licensed under The MIT License
+* 
+* @version   1
+* @author    Jose Rui Santos
+*
+* For info, please scroll to the bottom.
+*/
 (function ($, undefined) {
     'use strict';
     var GridClass = function ($elem, opts) {
@@ -400,10 +411,11 @@
                                 //   If returns any other data (or returns undefined), then row is deleted.
         onRemoveRow: null,      // Fired when a new row has just been deleted. Type: function (event, $deleteRow, index).
         onFieldUnchanged: null,  // Event that informs the plug-in whether the given field has been changed by the user. Type: function (event, $field, colIndex)
-                                  // Usually, input fields have been changed when their value is not am empty string. However, in some cases,
-                                  // such special mask fields, the value retrieved is not empty even though technically the field remains unchanged.
-                                  //   If returns true, then the field was not changed.
-                                  //   If returns false (or something else), then the field was changed.
+                                 // Usually, input fields have been changed when their value is not am empty string. However, in some cases,
+                                 // such special mask fields, the value retrieved is not empty even though technically the field remains unchanged.
+                                 //   If returns true, then the field was not changed.
+                                 //   If returns false (or something else), then the field was changed.
+                                 // This event is invoked when autoAddRows is true, and only on the fields of the last row. A new row is appended when a last row field is changed.
         onCreate: null,         // Fired when plug-in has been initialized. Type: function (event)
         onDestroy: null         // Fired when plug-in is destroyed, with a call to the 'destroy' method. Type: function (event)
     };
