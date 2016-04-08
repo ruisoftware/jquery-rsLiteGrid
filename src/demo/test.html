@@ -2,8 +2,8 @@
 <html>
   <head>
     <title>Lite grid demo</title>
-    <script src="jquery.2.0.0.min.js"></script>
-    <script src="jquery.rsLiteGrid.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../jquery.rsLiteGrid.js"></script>
     <script>
         $(document).ready(function () {
             $("table").rsLiteGrid({
@@ -14,20 +14,20 @@
                 tabStop: false,
                 name: 'col1',
                 header: 'col1',
-                htmlData: '<input type="text">'
+                markup: '<input type="text">'
               }, {
                 name: 'col2',
                 header: 'col2',
-                htmlData: '<input type="text">'
+                markup: '<input type="text">'
               }, {
-                htmlData: '<button>Y</button>'
+                markup: '<button>some button</button>'
               }, {
                 name: 'col3',
                 header: 'col3',
-                htmlData: '<input type="text">'
+                markup: '<input type="text">'
               }, {
                 tabStop: false,
-                htmlData: '<button>X</button>'
+                markup: '<button title="delete row">X</button>'
               }],
               onAddingRow: function (event, $newRow, index) {
                   $newRow.find('button').last().click(function () {

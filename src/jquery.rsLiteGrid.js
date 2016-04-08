@@ -1,18 +1,14 @@
 /**
-* jQuery Grid - Plain, simple table that adds rows as you
+* jQuery Grid - Plain, simple table that adds rows as you type
 * ===============================================================
-*
-* Licensed under The MIT License
-* 
-* @version   1
 * @author    Jose Rui Santos
-*
-* For info, please scroll to the bottom.
 */
 (function ($, undefined) {
     'use strict';
     var GridClass = function ($elem, opts) {
-        var DOM = {
+        var events,
+            json,
+            DOM = {
                 init: function () {
                     this.$table = $elem.is('table') ? $elem : $('<table>').appendTo($elem);
                     if (opts.caption) {
@@ -59,9 +55,9 @@
                     return opts.cols ? $.map(opts.cols, function (obj, index) { return obj.tabStop !== false ? index : undefined; }) : [];
                 },
                 addRow: function (values) {
-                    if (!opts.cols || (opts.maxRows > 0 && this.qtRows >= opts.maxRows)) return;
+                    if (!opts.cols || (opts.maxRows > 0 && this.qtRows >= opts.maxRows)) { return; }
 
-                    var $lastRow = $('<tr>' + opts.cols.map(function (obj) { return '<td>' + (obj.htmlData || '<input type=\'text\'>') + '</td>'; }).join('') + '</tr>'),
+                    var $lastRow = $('<tr>' + opts.cols.map(function (obj) { return '<td>' + (obj.markup || '<input type=\'text\'>') + '</td>'; }).join('') + '</tr>'),
                         $userLastRow = null;
 
                     if (values) {
@@ -71,7 +67,7 @@
                         $userLastRow = $elem.triggerHandler('onAddingRow.rsLiteGrid', [$lastRow, this.qtRows]);
                     }
                     if ($userLastRow !== false) {
-                        if (!($userLastRow instanceof jQuery)) {
+                        if ($userLastRow === null || !($userLastRow instanceof jQuery)) {
                             $userLastRow = $lastRow;
                         }
                         $userLastRow.appendTo(DOM.$tbody);
@@ -120,227 +116,228 @@
                         }
                     }
                 }
-            },
+            };
 
-            events = {
-                onCreate: function (event) {
-                    if (opts.onCreate) {
-                        opts.onCreate(event);
-                    }
-                },
-                onDestroy: function (event) {
-                    $elem.empty().unbind('.rsLiteGrid');
-                    if (opts.onDestroy) {
-                        opts.onDestroy(event);
-                    }
-                },
-                onAddingRow: function (event, $lastRow, index) {
-                    if (opts.onAddingRow) {
-                        $lastRow = opts.onAddingRow(event, $lastRow, index);
-                    }
-                    return $lastRow;
-                },
-                onAddRow: function (event, $userLastRow, index) {
-                    if (opts.onAddRow) {
-                        opts.onAddRow(event, $userLastRow, index);
-                    }
-                },
-                onRemovingRow: function (event, $deleteRow, index) {
-                    if (opts.onRemovingRow) {
-                        return opts.onRemovingRow(event, $deleteRow, index);
-                    }
-                },
-                onRemoveRow: function (event, $deleteRow, index) {
-                    if (opts.onRemoveRow) {
-                        opts.onRemoveRow(event, $deleteRow, index);
-                    }
-                },
-                onFieldUnchanged: function (event, $field, colIndex) {
-                    if (opts.onFieldUnchanged) {
-                        return opts.onFieldUnchanged(event, $field, colIndex);
-                    }
-                },
-                setLastRowEvents: function ($lastRow) {
-                    if (opts.autoAddRows) {
-                        if (!$lastRow) {
-                            $lastRow = DOM.$tbody.children().last();
-                        }
-                        $lastRow.children().children().bind('keyup.rsLiteGrid', events.onKeyUp);
-                    }
-                },
-                unsetLastRowEvents: function () {
-                    if (opts.autoAddRows) {
-                        DOM.$tbody.children().last().children().children().unbind('keyup.rsLiteGrid', events.onKeyUp);
-                    }
-                },
-                onKeyUp: function () {
-                    var $thisCol = $(this);
-                    if (opts.onFieldUnchanged) {
-                        if ($elem.triggerHandler('onFieldUnchanged.rsLiteGrid', [$thisCol, $thisCol.parent().index()]) !== true) {
-                            DOM.addLastRow();
-                        }
-                    } else {
-                        if ($thisCol.is('input') && $thisCol.val() !== '') {
-                            DOM.addLastRow();
-                        }
-                    }
-                },
-                keyboardCellNavigation: function (e) {
-                    var keys = {
-                            up: 38,
-                            down: 40,
-                            left: 37,
-                            right: 39,
-                            enter: 13,
-                            tab: 9,
-                            shiftTab: -9
-                        },
-                        $currentCol = $(this),
-                        $currentRow = $currentCol.closest('tr'),
-                        currentRowIndex = $currentRow.index(),
-                        currentColIndex = $currentCol.parent('td').index();
-                    if (e.which === keys.tab && e.shiftKey) {
-                        e.which = keys.shiftTab;
-                    }
-                    switch (e.which) {
-                        // focus on previous cell (or if at the beginning of the row, focus on the previous row last cell)
-                        case keys.left:
-                        case keys.shiftTab:
-                            if (e.which === keys.shiftTab || this.selectionStart === undefined || this.selectionStart === 0) {
-                                var prevStops = DOM.tabstops.filter(function (elem) {
-                                        return elem < currentColIndex;
-                                    });
-                                if (prevStops.length === 0) {
-                                    // try to focus on the previous row last focusable col
-                                    var $prevRow = $currentRow.prev();
-                                    if ($prevRow.length === 1) {
-                                        $prevRow.children().eq(DOM.tabstops[DOM.tabstops.length - 1]).children().focus();
-                                    }
-                                } else {
-                                   $currentRow.children().eq(prevStops[prevStops.length - 1]).children().focus();
-                                }
-                                e.preventDefault();
-                            }
-                            break;
-
-                        // focus on next cell (or if at the ending of the row, focus on the next row first cell)
-                        case keys.right:
-                        case keys.enter:
-                        case keys.tab:
-                            if (e.which !== keys.right || !this.value || this.selectionStart === this.value.length) {
-                                var nextStops = DOM.tabstops.filter(function (elem) {
-                                        return elem > currentColIndex;
-                                    });
-
-                                if (nextStops.length === 0) {
-                                    // try to focus on the next row first focusable col
-                                    var $nextRow = $currentRow.next();
-                                    if ($nextRow.length === 1) {
-                                        $nextRow.children().eq(DOM.tabstops[0]).children().focus();
-                                    }
-                                } else {
-                                     $currentRow.children().eq(nextStops[0]).children().focus();
-                                }
-                                e.preventDefault();
-                            }
-                            break;
-                        case keys.up:
-                        case keys.down:
-                            switch (e.which) {
-                                case keys.up:
-                                    if (currentRowIndex > 0) {
-                                        $currentRow.prev().children().eq($currentCol.parent('td').index()).children().focus();
-                                        e.preventDefault();
-                                    }
-                                    break;
-                                case keys.down:
-                                    if (currentRowIndex < DOM.$tbody.children().length - 1) {
-                                        $currentRow.next().children().eq($currentCol.parent('td').index()).children().focus();
-                                        e.preventDefault();
-                                    }
-                            }
-                    }
+        events = {
+            onCreate: function (event) {
+                if (opts.onCreate) {
+                    opts.onCreate(event);
                 }
             },
-
-            json = {
-                getData: function () {
-                    var rows = [];
-                    if (opts.cols) {
-                        var $allrows = DOM.$tbody.children(),
-                            colCount = $allrows.last().children().length;
-                        $allrows.each(function (index) {
-                            var $cols = $allrows.eq(index).children(),
-                                $col,
-                                row = {},
-                                colName;
-                            for (var colNumber = 0; colNumber < colCount; ++colNumber) {
-                                colName = opts.cols[colNumber] ? opts.cols[colNumber].name : undefined;
-                                if (colName) {
-                                    $col = $cols.eq(colNumber).children();
-                                    row[colName] = $col.is('input') ? $col.val() : $col.text();
-                                }
-                            }
-                            rows.push(row);
-                        });
+            onDestroy: function (event) {
+                $elem.empty().unbind('.rsLiteGrid');
+                if (opts.onDestroy) {
+                    opts.onDestroy(event);
+                }
+            },
+            onAddingRow: function (event, $lastRow, index) {
+                if (opts.onAddingRow) {
+                    $lastRow = opts.onAddingRow(event, $lastRow, index);
+                }
+                return $lastRow;
+            },
+            onAddRow: function (event, $userLastRow, index) {
+                if (opts.onAddRow) {
+                    opts.onAddRow(event, $userLastRow, index);
+                }
+            },
+            onRemovingRow: function (event, $deleteRow, index) {
+                if (opts.onRemovingRow) {
+                    return opts.onRemovingRow(event, $deleteRow, index);
+                }
+            },
+            onRemoveRow: function (event, $deleteRow, index) {
+                if (opts.onRemoveRow) {
+                    opts.onRemoveRow(event, $deleteRow, index);
+                }
+            },
+            onFieldUnchanged: function (event, $field, colIndex) {
+                if (opts.onFieldUnchanged) {
+                    return opts.onFieldUnchanged(event, $field, colIndex);
+                }
+            },
+            setLastRowEvents: function ($lastRow) {
+                if (opts.autoAddRows) {
+                    if (!$lastRow) {
+                        $lastRow = DOM.$tbody.children().last();
                     }
-                    return rows;
-                },
-                setData: function (event, values, append) {
-                    if (values) {
-                        var $allRows = DOM.$tbody.children();
-                        if (append && opts.autoAddRows) {
-                            var $lastRow = $allRows.last(),
-                                $cols = $lastRow.children(),
-                                $col;
-
-                            // if all inputs in last row are empty, then delete the last row
-                            if ($cols.filter(function (index) {
-                                $col = $cols.eq(index).children();
-                                return $col.is('input') ? $col.val() === '' : true;
-                            }).length === $cols.length) {
-                                $lastRow.remove();
-                            }
-                        }
-                        events.unsetLastRowEvents();
-                        if (!append) {
-                            $allRows.remove();
-                        }
-                        DOM.setQtRows();
-
-                        for (var idx = 0, qt = values.length; idx < qt; ++idx) {
-                            DOM.addRow(values[idx]);
-                        }
+                    $lastRow.children().children().bind('keyup.rsLiteGrid', events.onKeyUp);
+                }
+            },
+            unsetLastRowEvents: function () {
+                if (opts.autoAddRows) {
+                    DOM.$tbody.children().last().children().children().unbind('keyup.rsLiteGrid', events.onKeyUp);
+                }
+            },
+            onKeyUp: function () {
+                var $thisCol = $(this);
+                if (opts.onFieldUnchanged) {
+                    if ($elem.triggerHandler('onFieldUnchanged.rsLiteGrid', [$thisCol, $thisCol.parent().index()]) !== true) {
                         DOM.addLastRow();
                     }
-                },
-                setRowValues: function ($row, values) {
-                    var $rowCols = $row.children(),
-                        colCount = $rowCols.length,
-                        colNumber,
-                        $targetCol,
-                        $col,
-                        doFilter = function (colInfo) {
-                            return colInfo && colInfo.name === key;
-                        };
+                } else {
+                    if ($thisCol.is('input') && $thisCol.val() !== '') {
+                        DOM.addLastRow();
+                    }
+                }
+            },
+            keyboardCellNavigation: function (e) {
+                var keys = {
+                        up: 38,
+                        down: 40,
+                        left: 37,
+                        right: 39,
+                        enter: 13,
+                        tab: 9,
+                        shiftTab: -9
+                    },
+                    $currentCol = $(this),
+                    $currentRow = $currentCol.closest('tr'),
+                    currentRowIndex = $currentRow.index(),
+                    currentColIndex = $currentCol.parent('td').index();
+                if (e.which === keys.tab && e.shiftKey) {
+                    e.which = keys.shiftTab;
+                }
+                switch (e.which) {
+                    // focus on previous cell (or if at the beginning of the row, focus on the previous row last cell)
+                    case keys.left:
+                    case keys.shiftTab:
+                        if (e.which === keys.shiftTab || this.selectionStart === undefined || this.selectionStart === 0) {
+                            var prevStops = DOM.tabstops.filter(function (elem) {
+                                    return elem < currentColIndex;
+                                });
+                            if (prevStops.length === 0) {
+                                // try to focus on the previous row last focusable col
+                                var $prevRow = $currentRow.prev();
+                                if ($prevRow.length === 1) {
+                                    $prevRow.children().eq(DOM.tabstops[DOM.tabstops.length - 1]).children().focus();
+                                }
+                            } else {
+                               $currentRow.children().eq(prevStops[prevStops.length - 1]).children().focus();
+                            }
+                            e.preventDefault();
+                        }
+                        break;
 
-                    for (var key in values) {
-                        if (values.hasOwnProperty(key)) {
-                            $targetCol = opts.cols.filter(doFilter);
-                            if ($targetCol.length === 1) {
-                                colNumber = opts.cols.indexOf($targetCol[0]);
-                                if (colNumber > -1 && colNumber < colCount) {
-                                    $col = $rowCols.eq(colNumber).children();
-                                    if ($col.length === 1) {
-                                        /* jshint -W030 */
-                                        $col.is('input') ? $col.val(values[key]) : $col.text(values[key]);
-                                    }
+                    // focus on next cell (or if at the ending of the row, focus on the next row first cell)
+                    case keys.right:
+                    case keys.enter:
+                    case keys.tab:
+                        if (e.which !== keys.right || !this.value || this.selectionStart === this.value.length) {
+                            var nextStops = DOM.tabstops.filter(function (elem) {
+                                    return elem > currentColIndex;
+                                });
+
+                            if (nextStops.length === 0) {
+                                // try to focus on the next row first focusable col
+                                var $nextRow = $currentRow.next();
+                                if ($nextRow.length === 1) {
+                                    $nextRow.children().eq(DOM.tabstops[0]).children().focus();
+                                }
+                            } else {
+                                 $currentRow.children().eq(nextStops[0]).children().focus();
+                            }
+                            e.preventDefault();
+                        }
+                        break;
+                    case keys.up:
+                    case keys.down:
+                        switch (e.which) {
+                            case keys.up:
+                                if (currentRowIndex > 0) {
+                                    $currentRow.prev().children().eq($currentCol.parent('td').index()).children().focus();
+                                    e.preventDefault();
+                                }
+                                break;
+                            case keys.down:
+                                if (currentRowIndex < DOM.$tbody.children().length - 1) {
+                                    $currentRow.next().children().eq($currentCol.parent('td').index()).children().focus();
+                                    e.preventDefault();
+                                }
+                        }
+                }
+            }
+        };
+
+        json = {
+            getData: function () {
+                var rows = [];
+                if (opts.cols) {
+                    var $allrows = DOM.$tbody.children(),
+                        colCount = $allrows.last().children().length;
+                    $allrows.each(function (index) {
+                        var $cols = $allrows.eq(index).children(),
+                            $col,
+                            row = {},
+                            colName;
+                        for (var colNumber = 0; colNumber < colCount; ++colNumber) {
+                            colName = opts.cols[colNumber] ? opts.cols[colNumber].name : undefined;
+                            if (colName) {
+                                $col = $cols.eq(colNumber).children();
+                                row[colName] = $col.is('input') ? $col.val() : $col.text();
+                            }
+                        }
+                        rows.push(row);
+                    });
+                }
+                return rows;
+            },
+            setData: function (event, values, append) {
+                if (values) {
+                    var $allRows = DOM.$tbody.children();
+                    if (append && opts.autoAddRows) {
+                        var $lastRow = $allRows.last(),
+                            $cols = $lastRow.children(),
+                            $col;
+
+                        // if all inputs in last row are empty, then delete the last row
+                        if ($cols.filter(function (index) {
+                            $col = $cols.eq(index).children();
+                            return $col.is('input') ? $col.val() === '' : true;
+                        }).length === $cols.length) {
+                            $lastRow.remove();
+                        }
+                    }
+                    events.unsetLastRowEvents();
+                    if (!append) {
+                        $allRows.remove();
+                    }
+                    DOM.setQtRows();
+
+                    for (var idx = 0, qt = values.length; idx < qt; ++idx) {
+                        DOM.addRow(values[idx]);
+                    }
+                    DOM.addLastRow();
+                }
+            },
+            setRowValues: function ($row, values) {
+                var $rowCols = $row.children(),
+                    colCount = $rowCols.length,
+                    colNumber,
+                    $targetCol,
+                    $col,
+                    key,
+                    doFilter = function (colInfo) {
+                        return colInfo && colInfo.name === key;
+                    };
+
+                for (key in values) {
+                    if (values.hasOwnProperty(key)) {
+                        $targetCol = opts.cols.filter(doFilter);
+                        if ($targetCol.length === 1) {
+                            colNumber = opts.cols.indexOf($targetCol[0]);
+                            if (colNumber > -1 && colNumber < colCount) {
+                                $col = $rowCols.eq(colNumber).children();
+                                if ($col.length === 1) {
+                                    /* jshint -W030 */
+                                    $col.is('input') ? $col.val(values[key]) : $col.text(values[key]);
                                 }
                             }
                         }
                     }
                 }
-            };
+            }
+        };
 
         DOM.init();
     };
@@ -386,7 +383,7 @@
             header: 'col1',                  // Optional column header, that is placed inside the <th> tag. Type: String.
                                              // If ommited, then an empty <th></th> is created.
                                              // But if header is always ommited in every element of cols, then not a single <th> is ever created (and therefore <header> is not created as well).
-            htmlData: '<input type="text">', // Control placed on this column. If ommited, then '<input type="text">' is used. Type: String.
+            markup: '<input type="text">',   // Control placed on this column. If ommited, then '<input type="text">' is used. Type: String.
             tabStop: true                    // Whether this column's cells are focusable on keyboard (tab or arrow keys) navigation. If ommited, then true is used. Type: boolean.
         }],
         minRows: 1,     // Minimum allowed number of rows. Use null or 0 if it is ok for the table to be empty. Type: positive integer.
@@ -394,7 +391,7 @@
                         // Example: If table should have only 3 rows, set minRows = maxRows = 3;
                         //          If table should have between 1 and 5 rows, set minRows = 1 and maxRows = 5;
                         //          If table should have at least one row, set minRows = 1 and maxRows = null.
-        autoAddRows: true,      // Determines whether a new is appended to the bottom of the table, when last row is changed. Type: boolean.
+        autoAddRows: true,      // Determines whether a new row is appended to the bottom of the table, when last row is changed. Type: boolean.
                                 //   If true, then a new row is automatically appended when the user edits the last empty row.
                                 //   If false, then no row is automatically appended. It can only be appended via the method 'addRow'.
         onAddingRow: null,      // Fired immediatelly before a new row is about to be appended to the bottom of the table. Type: function (event, $newRow, index).
@@ -411,7 +408,7 @@
                                 //   If returns any other data (or returns undefined), then row is deleted.
         onRemoveRow: null,      // Fired when a new row has just been deleted. Type: function (event, $deleteRow, index).
         onFieldUnchanged: null,  // Event that informs the plug-in whether the given field has been changed by the user. Type: function (event, $field, colIndex)
-                                 // Usually, input fields have been changed when their value is not am empty string. However, in some cases,
+                                 // Usually, input fields have been changed when their value is not an empty string. However, in some cases,
                                  // such special mask fields, the value retrieved is not empty even though technically the field remains unchanged.
                                  //   If returns true, then the field was not changed.
                                  //   If returns false (or something else), then the field was changed.

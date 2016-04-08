@@ -1,0 +1,38 @@
+{
+  "name": "jquery-rsLiteGrid",
+  "title": "Simple table that automatically adds rows as you type",
+  "description": "Table with any number of columns and rows, with customized markup on each cell.",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ruisoftware/jquery-rsLiteGrid",
+  "author": {
+    "name": "Jose Rui Santos",
+    "email": "ruisoftware@gmail.com",
+    "url": "http://www.ruisoftware.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruisoftware/jquery-rsLiteGrid.git"
+  },
+  "bugs": "https://github.com/ruisoftware/jquery-rsLiteGrid/issues",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "dependencies": {
+    "jquery": "*"
+  },
+  "scripts": {
+    "test": "grunt travis --verbose"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-qunit": "~0.2.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt": "~0.4.5"
+  }
+}
