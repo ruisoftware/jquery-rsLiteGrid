@@ -1,49 +1,63 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Lite grid demo</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="../jquery.rsLiteGrid.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("table").rsLiteGrid({
-              minRows: 1,
-              //maxRows: 3,
-              caption: 'this is a caption',
-              cols: [{
-                tabStop: false,
-                name: 'col1',
-                header: 'col1',
-                markup: '<input type="text">'
-              }, {
-                name: 'col2',
-                header: 'col2',
-                markup: '<input type="text">'
-              }, {
-                markup: '<button>some button</button>'
-              }, {
-                name: 'col3',
-                header: 'col3',
-                markup: '<input type="text">'
-              }, {
-                tabStop: false,
-                markup: '<button title="delete row">X</button>'
-              }],
-              onAddingRow: function (event, $newRow, index) {
-                  $newRow.find('button').last().click(function () {
-                      $("table").rsLiteGrid('delRow', $newRow);
-                  });
-              }
-            });
-            
-            $("#addRow").click(function () {
-                $("table").rsLiteGrid('addRow');
-            });
-        });
-    </script>
-  </head>
-  <body>
-    <table></table>
-    <button id="addRow">+ Row</button>
-  </body>
+<head>
+  <title>jquery-rsLiteGrid plug-in</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="../jquery.rsLiteGrid.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('table').rsLiteGrid({
+        caption: 'Table caption',
+
+        cols: [{
+          name: 'name',
+          header: 'Name'
+        }, {
+          name: 'gender',
+          header: 'Gender',
+          markup: '<select><option value="male">Male</option><option value="female">Female</option></select>',
+          defaultValue: 'male'
+        }, {
+          name: 'age',
+          header: 'Age',
+          markup: '<input type="number">'
+        }, {
+          name: 'rule',
+          header: 'Rule'
+        }, {
+          // Delete button needs no name, since this columns does not need to be exported to Json
+          markup: '<button title="delete this row">X</button>',
+          tabStop: false
+        }],
+
+        // event fired after each row is appended to the table.
+        // The right place to set the click event for the delete row button
+        onAddRow: function (event, $lastNewRow) {
+          $('button', $lastNewRow).click(function () {
+            $('table').rsLiteGrid('delRow', $lastNewRow);
+          });
+        }
+
+        // load table with 2 rows of data
+      }).rsLiteGrid('setData', [
+        { name: 'John', rule: 'Developer', age: 43 },
+        { name: 'Maria', gender: 'female' }
+      ]);
+
+      // export data
+      $('table + button').click(function () {
+        console.log($('table').rsLiteGrid('getData'));
+        alert('Open your browser console to see the Json data.');
+      })
+    });
+  </script>
+</head>
+<body>
+  <table></table>
+  <button>Export to Json</button>
+  <p>
+    Type some data and press Enter. Use your arrows keys, Tab or Shift+Tab to focus on each cell.
+  </p>
+<body>
 </html>
+

@@ -9,6 +9,7 @@
         var events,
             json,
             DOM = {
+                elemsWithValAttr: 'button, select, option, input, li, meter, progress, param',
                 init: function () {
                     this.$table = $elem.is('table') ? $elem : $('<table>').appendTo($elem);
                     if (opts.caption) {
@@ -27,8 +28,7 @@
                         bind('onAddingRow.rsLiteGrid', events.onAddingRow).
                         bind('onAddRow.rsLiteGrid', events.onAddRow).
                         bind('onRemovingRow.rsLiteGrid', events.onRemovingRow).
-                        bind('onRemoveRow.rsLiteGrid', events.onRemoveRow).
-                        bind('onFieldUnchanged.rsLiteGrid', events.onFieldUnchanged);
+                        bind('onRemoveRow.rsLiteGrid', events.onRemoveRow);
 
                     var minRows = opts.minRows || 0;
                     this.qtRows = 0;
@@ -42,6 +42,13 @@
                         this.addLastRow();
                     }
                     $elem.trigger('create.rsLiteGrid');
+                },
+                getSelectionStart: function (domElement, defaultVal) {
+                    try {
+                        return (domElement.selectionStart || defaultVal || 0);
+                    } catch (DOMException) {
+                        return defaultVal || 0; // some DOM elements do not support selectionStart. Not a problem, assume 0.
+                    }
                 },
                 setQtRows: function () {
                     this.qtRows = this.$tbody.children().length;
@@ -57,8 +64,15 @@
                 addRow: function (values) {
                     if (!opts.cols || (opts.maxRows > 0 && this.qtRows >= opts.maxRows)) { return; }
 
-                    var $lastRow = $('<tr>' + opts.cols.map(function (obj) { return '<td>' + (obj.markup || '<input type=\'text\'>') + '</td>'; }).join('') + '</tr>'),
+                    var $lastRow = $('<tr>'),
                         $userLastRow = null;
+                    opts.cols.forEach(function (col) {
+                        var $cellCtrl = $(col.markup || '<input type=\'text\'>');
+                        if (col.defaultValue !== undefined && col.defaultValue !== null) {
+                            $cellCtrl.is(DOM.elemsWithValAttr) ? $cellCtrl.val(col.defaultValue) : $cellCtrl.text(col.defaultValue);
+                        }
+                        $lastRow.append($('<td>').append($cellCtrl));
+                    });
 
                     if (values) {
                         json.setRowValues($lastRow, values);
@@ -151,34 +165,30 @@
                     opts.onRemoveRow(event, $deleteRow, index);
                 }
             },
-            onFieldUnchanged: function (event, $field, colIndex) {
-                if (opts.onFieldUnchanged) {
-                    return opts.onFieldUnchanged(event, $field, colIndex);
-                }
-            },
             setLastRowEvents: function ($lastRow) {
                 if (opts.autoAddRows) {
                     if (!$lastRow) {
                         $lastRow = DOM.$tbody.children().last();
                     }
-                    $lastRow.children().children().bind('keyup.rsLiteGrid', events.onKeyUp);
+                    $lastRow.children().children().bind('change.rsLiteGrid', events.onChange);
                 }
             },
             unsetLastRowEvents: function () {
                 if (opts.autoAddRows) {
-                    DOM.$tbody.children().last().children().children().unbind('keyup.rsLiteGrid', events.onKeyUp);
+                    DOM.$tbody.children().last().children().children().unbind('change.rsLiteGrid', events.onChange);
                 }
             },
-            onKeyUp: function () {
-                var $thisCol = $(this);
-                if (opts.onFieldUnchanged) {
-                    if ($elem.triggerHandler('onFieldUnchanged.rsLiteGrid', [$thisCol, $thisCol.parent().index()]) !== true) {
-                        DOM.addLastRow();
+            onChange: function () {
+                var $thisCol = $(this),
+                    colIndex = $thisCol.closest('td').index(),
+                    defaultVal = '';
+                if (opts.cols && opts.cols[colIndex]) {
+                    if (opts.cols[colIndex].defaultValue !== undefined && opts.cols[colIndex].defaultValue !== null) {
+                        defaultVal = opts.cols[colIndex].defaultValue;
                     }
-                } else {
-                    if ($thisCol.is('input') && $thisCol.val() !== '') {
-                        DOM.addLastRow();
-                    }
+                }
+                if (($thisCol.is(DOM.elemsWithValAttr) ? $thisCol.val() : $thisCol.text()) !== defaultVal) {
+                    DOM.addLastRow();
                 }
             },
             keyboardCellNavigation: function (e) {
@@ -194,7 +204,7 @@
                     $currentCol = $(this),
                     $currentRow = $currentCol.closest('tr'),
                     currentRowIndex = $currentRow.index(),
-                    currentColIndex = $currentCol.parent('td').index();
+                    currentColIndex = $currentCol.closest('td').index();
                 if (e.which === keys.tab && e.shiftKey) {
                     e.which = keys.shiftTab;
                 }
@@ -202,7 +212,7 @@
                     // focus on previous cell (or if at the beginning of the row, focus on the previous row last cell)
                     case keys.left:
                     case keys.shiftTab:
-                        if (e.which === keys.shiftTab || this.selectionStart === undefined || this.selectionStart === 0) {
+                        if (e.which === keys.shiftTab || DOM.getSelectionStart(this) === 0) {
                             var prevStops = DOM.tabstops.filter(function (elem) {
                                     return elem < currentColIndex;
                                 });
@@ -223,7 +233,7 @@
                     case keys.right:
                     case keys.enter:
                     case keys.tab:
-                        if (e.which !== keys.right || !this.value || this.selectionStart === this.value.length) {
+                        if (e.which !== keys.right || !this.value || DOM.getSelectionStart(this, this.value.length) === this.value.length) {
                             var nextStops = DOM.tabstops.filter(function (elem) {
                                     return elem > currentColIndex;
                                 });
@@ -245,13 +255,13 @@
                         switch (e.which) {
                             case keys.up:
                                 if (currentRowIndex > 0) {
-                                    $currentRow.prev().children().eq($currentCol.parent('td').index()).children().focus();
+                                    $currentRow.prev().children().eq($currentCol.closest('td').index()).children().focus();
                                     e.preventDefault();
                                 }
                                 break;
                             case keys.down:
                                 if (currentRowIndex < DOM.$tbody.children().length - 1) {
-                                    $currentRow.next().children().eq($currentCol.parent('td').index()).children().focus();
+                                    $currentRow.next().children().eq($currentCol.closest('td').index()).children().focus();
                                     e.preventDefault();
                                 }
                         }
@@ -274,7 +284,7 @@
                             colName = opts.cols[colNumber] ? opts.cols[colNumber].name : undefined;
                             if (colName) {
                                 $col = $cols.eq(colNumber).children();
-                                row[colName] = $col.is('input') ? $col.val() : $col.text();
+                                row[colName] = $col.is(DOM.elemsWithValAttr) ? $col.val() : $col.text();
                             }
                         }
                         rows.push(row);
@@ -293,7 +303,7 @@
                         // if all inputs in last row are empty, then delete the last row
                         if ($cols.filter(function (index) {
                             $col = $cols.eq(index).children();
-                            return $col.is('input') ? $col.val() === '' : true;
+                            return $col.is(DOM.elemsWithValAttr) ? $col.val() === '' : true;
                         }).length === $cols.length) {
                             $lastRow.remove();
                         }
@@ -330,7 +340,7 @@
                                 $col = $rowCols.eq(colNumber).children();
                                 if ($col.length === 1) {
                                     /* jshint -W030 */
-                                    $col.is('input') ? $col.val(values[key]) : $col.text(values[key]);
+                                    $col.is(DOM.elemsWithValAttr) ? $col.val(values[key]) : $col.text(values[key]);
                                 }
                             }
                         }
@@ -384,6 +394,7 @@
                                              // If ommited, then an empty <th></th> is created.
                                              // But if header is always ommited in every element of cols, then not a single <th> is ever created (and therefore <header> is not created as well).
             markup: '<input type="text">',   // Control placed on this column. If ommited, then '<input type="text">' is used. Type: String.
+            defaultValue: null,              // Default value. It is used to determine whether the cell has been changed.
             tabStop: true                    // Whether this column's cells are focusable on keyboard (tab or arrow keys) navigation. If ommited, then true is used. Type: boolean.
         }],
         minRows: 1,     // Minimum allowed number of rows. Use null or 0 if it is ok for the table to be empty. Type: positive integer.
@@ -407,12 +418,6 @@
                                 //   If returns a positive number, then the row is deleted after the given time in milliseconds (useful for CSS3 delete animations);
                                 //   If returns any other data (or returns undefined), then row is deleted.
         onRemoveRow: null,      // Fired when a new row has just been deleted. Type: function (event, $deleteRow, index).
-        onFieldUnchanged: null,  // Event that informs the plug-in whether the given field has been changed by the user. Type: function (event, $field, colIndex)
-                                 // Usually, input fields have been changed when their value is not an empty string. However, in some cases,
-                                 // such special mask fields, the value retrieved is not empty even though technically the field remains unchanged.
-                                 //   If returns true, then the field was not changed.
-                                 //   If returns false (or something else), then the field was changed.
-                                 // This event is invoked when autoAddRows is true, and only on the fields of the last row. A new row is appended when a last row field is changed.
         onCreate: null,         // Fired when plug-in has been initialized. Type: function (event)
         onDestroy: null         // Fired when plug-in is destroyed, with a call to the 'destroy' method. Type: function (event)
     };
