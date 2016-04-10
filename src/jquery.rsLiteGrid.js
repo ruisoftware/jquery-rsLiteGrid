@@ -69,7 +69,11 @@
                     opts.cols.forEach(function (col) {
                         var $cellCtrl = $(col.markup || '<input type=\'text\'>');
                         if (col.defaultValue !== undefined && col.defaultValue !== null) {
-                            $cellCtrl.is(DOM.elemsWithValAttr) ? $cellCtrl.val(col.defaultValue) : $cellCtrl.text(col.defaultValue);
+                            if ($cellCtrl.is(DOM.elemsWithValAttr)) {
+                                $cellCtrl.val(col.defaultValue);
+                            } else {
+                                $cellCtrl.text(col.defaultValue);
+                            }
                         }
                         $lastRow.append($('<td>').append($cellCtrl));
                     });
@@ -241,6 +245,10 @@
                             if (nextStops.length === 0) {
                                 // try to focus on the next row first focusable col
                                 var $nextRow = $currentRow.next();
+                                if ($nextRow.length === 0) {
+                                    $(this).triggerHandler('change.rsLiteGrid');
+                                    $nextRow = $currentRow.next();
+                                }
                                 if ($nextRow.length === 1) {
                                     $nextRow.children().eq(DOM.tabstops[0]).children().focus();
                                 }
