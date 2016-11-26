@@ -67,8 +67,7 @@
                     var $lastRow = $('<tr>'),
                         $userLastRow = null;
                     opts.cols.forEach(function (col) {
-                        var markup = typeof col.markup === "function" ? col.markup() : col.markup,
-                            $cellCtrl = $(markup || '<input type=\'text\'>');
+                        var $cellCtrl = $(col.markup || '<input type=\'text\'>');
                         if (col.defaultValue !== undefined && col.defaultValue !== null) {
                             if ($cellCtrl.is(DOM.elemsWithValAttr)) {
                                 $cellCtrl.val(col.defaultValue);
@@ -402,13 +401,7 @@
             header: 'col1',                  // Optional column header, that is placed inside the <th> tag. Type: String.
                                              // If ommited, then an empty <th></th> is created.
                                              // But if header is always ommited in every element of cols, then not a single <th> is ever created (and therefore <header> is not created as well).
-            markup: '<input type="text">',   // Control placed on this column. If ommited, then '<input type="text">' is used. Type: String or function().
-                                             // You can use a function to set a markup that changes according to the row index. Example:
-                                             // markup: function () {
-                                             //             var name = getNewGroup(); // your own function that returns a unique name for each row
-                                             //             return '<input type="radio" name="' + name + '" value="male">Male' +
-                                             //                    '<input type="radio" name="' + name + '" value="female">Female'; 
-                                             //         }
+            markup: '<input type="text">',   // Control placed on this column. If ommited, then '<input type="text">' is used. Type: String.
             defaultValue: null,              // Default value. It is used to determine whether the cell has been changed.
             tabStop: true                    // Whether this column's cells are focusable on keyboard (tab or arrow keys) navigation. If ommited, then true is used. Type: boolean.
         }],
