@@ -1,5 +1,5 @@
 # jquery-rsLiteGrid [![Build Status](https://travis-ci.org/ruisoftware/jquery-rsLiteGrid.svg?branch=master)](https://travis-ci.org/ruisoftware/jquery-rsLiteGrid)
-Easly input tabular data using only your keyboard.
+Easily input tabular data using only your keyboard.
 
 #Key Features
  - Optional minimum and/or maximum number of rows;
