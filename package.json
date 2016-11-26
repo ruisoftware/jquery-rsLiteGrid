@@ -2,7 +2,7 @@
   "name": "jquery.rsLiteGrid",
   "title": "Simple table that automatically adds rows as you type",
   "description": "Table with any number of columns and rows, with customized markup on each cell.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage": "https://github.com/ruisoftware/jquery-rsLiteGrid",
   "author": {
     "name": "Jose Rui Santos",
