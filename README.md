@@ -20,7 +20,7 @@ or directly from git:
 ````javascript
 <script src="http://rawgit.com/ruisoftware/jquery-rsLiteGrid/master/src/jquery.rsLiteGrid.js"></script>
 ````
-or you can download the Zip archive from github, clone or fork this repository and include `jquery.rsRefPointer.js` from your local machine.
+or you can download the Zip archive from github, clone or fork this repository and include `jquery.rsLiteGrid.js` from your local machine.
 
 You also need to download jQuery. In the example below, jQuery is downloaded from Google cdn.
 
