@@ -14,7 +14,7 @@ Easily input tabular data using only your keyboard.
 
 You can install from [npm](https://www.npmjs.com/):
 ````bash
-npm install jquery-rsLiteGrid --save
+npm install jquery.rsLiteGrid --save
 ````
 or directly from git:
 ````javascript
