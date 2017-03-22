@@ -1,7 +1,7 @@
 # jquery-rsLiteGrid [![Build Status](https://travis-ci.org/ruisoftware/jquery-rsLiteGrid.svg?branch=master)](https://travis-ci.org/ruisoftware/jquery-rsLiteGrid)
 Easily input tabular data using only your keyboard.
 
-#Key Features
+# Key Features
  - Optional minimum and/or maximum number of rows;
  - Configurable markup and tabstop for each column;
  - Use cursor keys, Tab, Shift+Tab to navigate across all the columns and rows;
@@ -10,7 +10,7 @@ Easily input tabular data using only your keyboard.
  - Rows can be added or removed asynchronously after an ellapsed time. Ideal for CSS3 animations;
  - Small footprint.
 
-#Installation
+# Installation
 
 You can install from [npm](https://www.npmjs.com/):
 ````bash
@@ -24,7 +24,7 @@ or you can download the Zip archive from github, clone or fork this repository a
 
 You also need to download jQuery. In the example below, jQuery is downloaded from Google cdn.
 
-#Usage
+# Usage
 ````javascript
 <!doctype html>
 <html>
