@@ -111,8 +111,8 @@
                                 deleteRowIndex = $allrows.index($deleteRow),
                                 removeRowInfo = true,
                                 doDelete = function () {
-                                    $elem.triggerHandler('onRemoveRow.rsLiteGrid', [$deleteRow, deleteRowIndex]);
                                     $deleteRow.remove();
+                                    $elem.triggerHandler('onRemoveRow.rsLiteGrid', [$deleteRow, deleteRowIndex]);
                                     DOM.setQtRows();
                                 };
 
@@ -421,11 +421,11 @@
                                 //   If returns any other data (or returns undefined) then the $newRow is added.
 
         onAddRow: null,         // Fired when a new row has just been appended to the bottom of the table. Type: function (event, $newRow, index).
-        onRemovingRow: null,    // Fired immediatelly before a new row is about to be deleted. Type: function (event, $deleteRow, index).
-                                //   If returns false, then the row is not deleted. The onRemoveRow is not called;
-                                //   If returns a positive number, then the row is deleted after the given time in milliseconds (useful for CSS3 delete animations);
-                                //   If returns any other data (or returns undefined), then row is deleted.
-        onRemoveRow: null,      // Fired when a new row has just been deleted. Type: function (event, $deleteRow, index).
+        onRemovingRow: null,    // Fired immediatelly before a row is about to be deleted. Type: function (event, $deleteRow, index).
+                                //   If it returns false, then the row is not deleted. The onRemoveRow is not called;
+                                //   If it returns a positive number, then the row is deleted after the given time in milliseconds (useful for CSS3 delete animations);
+                                //   If it returns any other data (or returns undefined), then the row is deleted.
+        onRemoveRow: null,      // Fired immediatelly after a row has been deleted. Type: function (event, $deleteRow, index).
         onCreate: null,         // Fired when plug-in has been initialized. Type: function (event)
         onDestroy: null         // Fired when plug-in is destroyed, with a call to the 'destroy' method. Type: function (event)
     };
