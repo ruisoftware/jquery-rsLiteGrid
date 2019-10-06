@@ -1,8 +1,8 @@
 /**
-* jQuery Grid - Plain, simple table that adds rows as you type
-* ===============================================================
-* @author    Jose Rui Santos
-*/
+ * jQuery Grid - Plain, simple table that adds rows as you type
+ * ===============================================================
+ * @author    Jose Rui Santos
+ */
 (function ($, undefined) {
     'use strict';
     var GridClass = function ($elem, opts) {
@@ -99,6 +99,7 @@
                 addLastRow: function (event, values) {
                     events.unsetLastRowEvents(); // unset events from currently last row
                     // and set the events for the new last row
+                    DOM.setQtRows();
                     events.setLastRowEvents(DOM.addRow(values));
                     DOM.setQtRows();
                 },
@@ -325,7 +326,9 @@
                     for (var idx = 0, qt = values.length; idx < qt; ++idx) {
                         DOM.addRow(values[idx]);
                     }
-                    DOM.addLastRow();
+                    if (opts.autoAddRows) {
+                        DOM.addLastRow();
+                    }
                 }
             },
             setRowValues: function ($row, values) {
